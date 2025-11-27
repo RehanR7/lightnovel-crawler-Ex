@@ -33,3 +33,5 @@ save_pid.txt
 Test Novel
 windows/
 yarn.lock
+bot_activity.log
+bot_logs/
