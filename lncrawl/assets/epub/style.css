@@ -1,7 +1,189 @@
+/* Base Reset */
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+  margin-right: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+}
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Pirata+One&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap');
+/* Body Styles */
+body {
+  font-size: 1em;
+  line-height: 1.5;
+  max-width: 100%;
+  margin: 0 auto;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+/* Media query for dark mode */
+@media (prefers-color-scheme: dark) {
+  body {
+    color: #f0f0f0;
+    background-color: #121212;
+  }
+  blockquote {
+    border-left: 4px solid #666;
+    color: #ccc;
+  }
+  i {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  img {
+    border: 5px solid #444;
+  }
+  a {
+    color: #82b1ff;
+  }
+  code, pre {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  hyphens: none !important;
+  -moz-hyphens: none !important;
+  -webkit-hyphens: none !important;
+  page-break-after: avoid;
+  page-break-inside: avoid;
+  text-indent: 0;
+  text-align: left;
+}
+
+/* Chapter titles - Pirata One font BOLD */
+h1 {
+  font-family: 'Pirata One', cursive !important;
+  font-size: 1.8em !important;
+  font-weight: normal !important;  /* Changed from bold */
+  text-align: center !important;
+  margin: 20px 0 15px 0 !important;
+  color: #000;
+}
+
+h2 {
+  font-family: 'Pirata One', cursive;
+  font-size: 1.4em;
+  font-weight: bold;
+  margin: 50px 0 0 0;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  text-align: center !important;
+}
+
+h3, h4, h5, h6 {
+  font-family: 'Pirata One', cursive;
+  font-weight: bold;
+}
+
+/* Decorative separator */
+.decorative-line, p[style*="text-align: center"] {
+  text-align: center;
+  margin: 15px 0;
+  font-size: 1.2em;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+}
+
+/* Paragraphs */
+p {
+  font-family: Georgia, "Palatino", "Times New Roman", serif;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  hyphens: auto;
+  line-height: 1.6em;
+  margin-bottom: 1em;
+  text-align: justify;
+  text-indent: 2em;
+  orphans: 2;
+  widows: 2;
+}
+
+p.first-para,
+p.first-para-chapter,
+h1 + p,
+h2 + p,
+h3 + p,
+div + p:first-of-type {
+  text-indent: 0;
+}
+
+p + p {
+  text-indent: 2em;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc a:hover {
+  text-decoration: underline;
+}
+
+/* Lists */
+ul, ol {
+  list-style-type: circle;
+  font-family: serif;
+  padding-left: 2em;
+}
+
+/* Blockquotes */
+blockquote {
+  margin: 1em;
+  padding: 0.5em;
+  font-style: italic;
+  border-left: 3px solid #888;
+}
+
+/* Code */
+code, kbd, samp, tt {
+  font-family: "Courier New", Courier, monospace;
+  padding: 0.2em 0.4em;
+  border-radius: 0.3em;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+pre {
+  font-family: "Courier New", Courier, monospace;
+  padding: 1em;
+  white-space: pre-wrap;
+  margin: 1em 0;
+  overflow-x: auto;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Superscript and Subscript */
+sup, sub {
+  font-size: 0.8em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sup {
+  top: -0.5em;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+/* Special Text Styles */
+i {
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Images */
 img {
-  width: 100%;
-  object-fit: contain;
-  object-position: center;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 20px auto;
 }
 
 p + br,
@@ -9,6 +191,7 @@ br + br {
   display: none;
 }
 
+/* Volume styling */
 #volume {
   width: 100%;
   height: 100%;
@@ -18,20 +201,141 @@ br + br {
   justify-content: center;
 }
 
+#volume h1 {
+  font-size: 2.2em;
+  font-weight: bold;
+}
+
+/* Intro page */
 #intro h1 {
   opacity: 1;
   margin-bottom: 7px;
-  letter-spacing: 0.4;
+  font-size: 2em;
+  font-weight: bold;
 }
+
 #intro h3 {
   opacity: 0.6;
   margin-top: 0;
-  letter-spacing: 0.25;
+  font-weight: normal;
 }
+
 #intro .synopsis {
   margin: 15px 0;
-  letter-spacing: 0.2;
+  line-height: 1.6;
+  text-align: justify;
+  border-left: 3px solid #888;
+  padding-left: 1em;
+  font-style: italic;
 }
+
 #intro .footer {
   opacity: 0.8;
+  font-size: 0.9em;
+  margin-top: 20px;
+}
+
+/* Cover */
+.cover-page {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  height: 100%;
+  width: 100%;
+}
+
+.cover-image {
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+}
+
+/* Table of Contents Styling */
+nav#toc,
+nav[role="doc-toc"] {
+  font-family: Georgia, "Palatino", "Times New Roman", serif;
+  padding: 20px;
+}
+
+/* Hide the auto-generated heading */
+nav#toc h2,
+nav[role="doc-toc"] h2 {
+  display: none;
+}
+
+/* Create custom "Table of Contents" heading */
+nav#toc::before,
+nav[role="doc-toc"]::before {
+  content: "Table of Contents";
+  display: block;
+  font-family: 'Pirata One', cursive;
+  text-align: center;
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 30px;
+  color: #000;
+}
+
+/* Alternative h1 styling */
+nav#toc h1,
+nav[role="doc-toc"] h1 {
+  font-family: 'Pirata One', cursive;
+  text-align: center;
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 30px;
+  color: #000;
+}
+
+/* TOC lists */
+nav#toc ol,
+nav[role="doc-toc"] ol {
+  list-style-type: none;
+  padding-left: 0;
+  font-family: Georgia, "Palatino", "Times New Roman", serif;
+}
+
+/* Nested chapter lists */
+nav#toc ol ol,
+nav[role="doc-toc"] ol ol {
+  padding-left: 2em;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/* TOC list items */
+nav#toc li,
+nav[role="doc-toc"] li {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+/* TOC links - remove blue color and underline */
+nav#toc a,
+nav[role="doc-toc"] a {
+  color: #000 !important;
+  text-decoration: none !important;
+  font-family: Georgia, "Palatino", "Times New Roman", serif;
+  font-size: 1em;
+}
+
+/* TOC links hover effect */
+nav#toc a:hover,
+nav[role="doc-toc"] a:hover {
+  text-decoration: none;
+  color: #333;
+}
+
+/* Volume-level items (Title Page, Synopsis, Volume 1) */
+nav#toc > ol > li,
+nav[role="doc-toc"] > ol > li {
+  margin: 15px 0;
+  font-weight: normal;
+}
+
+/* Chapter items under volumes */
+nav#toc ol ol li,
+nav[role="doc-toc"] ol ol li {
+  margin: 5px 0;
+  font-weight: normal;
 }

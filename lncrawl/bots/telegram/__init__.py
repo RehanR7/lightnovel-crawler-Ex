@@ -4,7 +4,7 @@ import os
 import re
 import shutil
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict
+from typing import Dict, Literal
 from urllib.parse import urlparse
 
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
@@ -32,7 +32,7 @@ class TelegramBot:
             max_workers=10, thread_name_prefix="telegram_bot"
         )
         self.active_sessions: Dict[str, dict] = {}  # Track active user sessions
-        self.max_active_sessions = 50  # Maximum concurrent sessions
+        self.max_active_sessions = 5  # Maximum concurrent sessions
 
     def start(self):
         os.environ["debug_mode"] = "yes"
@@ -86,7 +86,7 @@ class TelegramBot:
                     CommandHandler("first", self.handle_range_first),
                     CommandHandler("volume", self.handle_range_volume),
                     CommandHandler("chapter", self.handle_range_chapter),
-                    MessageHandler(
+                    MessageHandler[ContextTypes, Literal['handle_range_selection']] (
                         filters.TEXT & ~(filters.COMMAND),
                         self.display_range_selection_help,
                     ),
@@ -131,13 +131,14 @@ class TelegramBot:
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
     async def error_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        logger.warning("Error: %s\nCaused by: %s", context.error, update)
+        logger.warning(f"Error: {context.error}\nCaused by: {update}")
 
-    async def show_help(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text(
-            "Send /start to create a new session.\n"
-            "Send /status to check the status of your current download.\n"
-            "Send /cancel to stop your current session."
+    async def show_help(self, update: Update, _: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_markdown(
+            "_🤖 Available Commands:_ \n\n"
+            "- /start - Create a new session\n"
+            "- /status - Check current download status\n"
+            "- /cancel - Stop current session",
         )
         return ConversationHandler.END
 
@@ -157,10 +158,11 @@ class TelegramBot:
                 future = session.get(future_key)
                 if future and not future.done():
                     future.cancel()
-                    logger.info("Cancelled %s for chat_id %s", future_key, chat_id)
+                    logger.info(f"Cancelled {future_key} for chat_id {chat_id}")
 
         for job in self.get_current_jobs(chat_id, context):
             job.schedule_removal()
+            logger.info(f"Removed job {job.name} for chat_id {chat_id}")
 
         if session:
             app = session.get("app")
@@ -178,7 +180,7 @@ class TelegramBot:
                     logger.info("Session destroyed for chat_id: %s", chat_id)
 
         await context.bot.send_message(
-            chat_id, text="Session closed", reply_markup=ReplyKeyboardRemove()
+            chat_id, text="Session closed Tab /start to open a new session.", reply_markup=ReplyKeyboardRemove()
         )
         return ConversationHandler.END
 
@@ -187,15 +189,19 @@ class TelegramBot:
 
         # Check if user already has an active session
         if chat_id in self.active_sessions:
-            await update.message.reply_text(
-                "You already have an active session. Please send /cancel to close it before starting a new one."
+            await update.message.reply_markdown(
+                "🔴 *Active Session Found*\n\n"
+                "You already have an active session.\n"
+                "Please send /cancel to close it before starting a new one."
             )
             return ConversationHandler.END
 
         # Check session limit
         if len(self.active_sessions) >= self.max_active_sessions:
-            await update.message.reply_text(
-                "Sorry, the bot is currently handling too many requests. Please try again later."
+            await update.message.reply_markdown(
+                "🔴 *Too Many Requests*\n\n"
+                "Sorry, the bot is currently handling *too many requests*.\n"
+                "Please try again later 🕒"
             )
             return ConversationHandler.END
 
@@ -210,12 +216,18 @@ class TelegramBot:
             "status": "Initialized",
             "error": None,
         }
-        await update.message.reply_text("A new session is created.")
         await update.message.reply_text(
-            "I recognize input of these two categories:\n"
-            "- Profile page url of a lightnovel.\n"
-            "- A query to search your lightnovel.\n"
-            "Enter whatever you want or send /cancel to stop."
+            "✅ *New Session Created*\n\n"
+            "I'm ready to help you download webnovels!",
+            parse_mode='Markdown'
+        )
+        await update.message.reply_text(
+            "📚 *How to use:*\n\n"
+            "I can work with the following types of input:\n"
+            "• *Profile URL* - Direct link to a webnovel's profile page\n"
+            "• *Search Query* - Just type the name of the webnovel you're looking for\n\n"
+            "Type your input below or send /cancel to stop.",
+            parse_mode='Markdown'
         )
         return "handle_novel_url"
 
@@ -226,16 +238,19 @@ class TelegramBot:
         session = self.active_sessions.get(chat_id)
 
         if not session:
-            await update.message.reply_text("Please start a new session with /start.")
+            await update.message.reply_markdown(
+                "🔴 *Session Not Found*\n\n"
+                "Please start a new session with /start command."
+            )
             return ConversationHandler.END
 
         if self.get_current_jobs(chat_id, context):
             app = session.get("app")
             status = session.get("status", "Processing...")
-            await update.message.reply_text(
-                f"{status}\n"
-                f"{int(app.progress)} out of {len(app.chapters)} chapters has been downloaded.\n"
-                f"To terminate this session send /cancel."
+            await update.message.reply_markdown(
+                f"*{status}*\n\n"
+                f"*{int(app.progress)}* out of *{len(app.chapters)}* chapters has been downloaded.\n\n"
+                "To terminate this session, send /cancel command."
             )
             return "handle_novel_url"
 
@@ -247,10 +262,11 @@ class TelegramBot:
             app.prepare_search()
         except Exception as e:
             logger.exception("Failed to init crawler for chat_id %s: %s", chat_id, e)
-            await update.message.reply_text(
-                "Sorry! I only recognize these sources:\n"
-                "https://github.com/dipu-bd/lightnovel-crawler#supported-sources\n"
-                "Enter something again or send /cancel to stop.\n"
+            await update.message.reply_markdown(
+                "🔴 *Failed to init crawler*\n\n"
+                "Sorry! I only recognize these "
+                "[supported sources](https://github.com/dipu-bd/lightnovel-crawler#supported-sources).\n"
+                "Enter something again or send /cancel command to stop.\n"
                 "You can send the novelupdates link of the novel too."
             )
             return "handle_novel_url"
@@ -290,9 +306,9 @@ class TelegramBot:
                 ]
             ]
 
-        await update.message.reply_text(
-            "Choose where to search for your novel, \n"
-            "or send /skip to search everywhere.",
+        await update.message.reply_markdown(
+            "Choose the *source* to search for your novel, \n"
+            "or send `/skip` to search *everywhere*.",
             reply_markup=ReplyKeyboardMarkup(buttons, one_time_keyboard=True),
         )
         return "handle_crawler_to_search"
@@ -319,13 +335,13 @@ class TelegramBot:
             if selected_crawlers:
                 app.crawler_links = selected_crawlers
 
-        await update.message.reply_text(
-            f'Searching for "{app.user_input}" in {len(app.crawler_links)} sites. Please wait.',
+        await update.message.reply_markdown(
+            f'Searching for *"{app.user_input}"* in {len(app.crawler_links)} sites. Please wait.',
             reply_markup=ReplyKeyboardRemove(),
         )
-        await update.message.reply_text(
+        await update.message.reply_markdown(
             "DO NOT type anything until I reply.\n"
-            "You can only send /cancel to stop this session."
+            "You can only send `/cancel` to stop this session."
         )
 
         # Run search in a separate thread
@@ -412,8 +428,8 @@ class TelegramBot:
             [f"{i + 1}. {novel['url']} {novel.get('info', '')}"]
             for i, novel in enumerate(selected["novels"])
         ]
-        await update.message.reply_text(
-            f'Choose a source to download "{selected["title"]}", or send /cancel to stop this session.',
+        await update.message.reply_markdown(
+            f'Choose a source to download *"{selected["title"]}"*, or send `/cancel` to stop this session.',
             reply_markup=ReplyKeyboardMarkup(buttons, one_time_keyboard=True),
         )
         return "handle_select_source"
@@ -505,16 +521,15 @@ class TelegramBot:
 
     async def display_range_selection_help(self, update: Update):
         await update.message.reply_text(
-            "\n".join(
-                [
-                    "Send /all to download everything.",
-                    "Send /last to download last 50 chapters.",
-                    "Send /first to download first 50 chapters.",
-                    "Send /volume to choose specific volumes to download",
-                    "Send /chapter to choose a chapter range to download",
-                    "To terminate this session, send /cancel.",
-                ]
-            )
+            "📥 *Select what to download*\n\n"
+            "Use these commands to choose your chapter range:\n\n"
+            "• /all – Download *everything*\n"
+            "• /last – Download the *last 50* chapters\n"
+            "• /first – Download the *first 50* chapters\n"
+            "• /volume – Choose specific *volumes* to download\n"
+            "• /chapter – Choose a *chapter range* to download\n\n"
+            "To terminate this session, send /cancel.",
+            parse_mode='Markdown',
         )
         return "handle_range_selection"
 
@@ -683,8 +698,10 @@ class TelegramBot:
         )
         session["job"] = job
         session["status"] = "Starting download..."
-        await update.message.reply_text(
-            f"Your request has been received. I will generate book in {', '.join(k for k, v in app.output_formats.items() if v)} format(s)",
+        await update.message.reply_markdown(
+            "✅ *Download Scheduled*\n\n"
+            f"I will generate your book in *{', '.join(k for k, v in app.output_formats.items() if v)}* format(s).\n\n"
+            "You can use the /status command at any time to check the progress.",
             reply_markup=ReplyKeyboardRemove(),
         )
         return ConversationHandler.END
