@@ -7,7 +7,7 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "python3 lncrawl --bot telegram",
+    "startCommand": "python3 lncrawl --bot telegram --workers 1",
     "sleepApplication": false,
     "useLegacyStacker": false,
     "multiRegionConfig": {
